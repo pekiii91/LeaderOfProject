@@ -1,0 +1,288 @@
+﻿@model IEnumerable<ProjectLeader.Models.EmployeeHelperModels.EmployeeHelperModels>
+@using ProjectLeader.Service
+@using Microsoft.AspNetCore.Identity;
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Here is the list of Employees</h2>
+
+<div class="top-buffer"></div>
+<div class="panel panel-primary">
+    <div class="panel-heading panel-head">Employee</div>
+        @if (User.IsInRole("DepartmentLead") || User.IsInRole("ProjectLead"))
+        {
+        <button class="btn btn-primary" onclick="getCreateModal()">Create employee</button>
+        }
+        <div class="top-buffer"></div>
+        <table class="table table-bordered table-striped table-condensed">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Email</th>
+                    <th>Date of Birth</th>
+                    <th>Gender</th>
+                    <th>City</th>
+                    <th>State</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.FirstName)</td>
+                        <td>@Html.DisplayFor(modelItem => item.LastName)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                        <td>@Html.DisplayFor(modelItem => item.DateOfBirth)</td>
+                        <td>@Html.DisplayFor(modelItem => item.GenderId)</td>
+                        <td>@Html.DisplayFor(modelItem => item.City)</td>
+                        <td>@Html.DisplayFor(modelItem => item.State)</td>
+                        @if (User.IsInRole("DepartmentLead") || User.IsInRole("ProjectLead"))
+                        {
+                            <td>
+                                <div class="form-group">
+                                    <div class="col-md-offset-2 col-md-5">
+                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#placeEditModalEmployees" onclick="getEdit('@item.Id')">Edit</button>
+                                    </div>
+                                </div>
+
+
+                                <div class="form-group">
+                                    <div class="col-md-offset-2 col-md-5">
+                                        <button type="button" class="btn btn-primary" onclick="deleteEmployee('@item.Id')">Delete</button>
+                                    </div>
+                                </div>
+                            </td>
+                        }
+                        else
+                        {
+                            <td></td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+</div>
+
+
+<div id="placeCreateModalEmployees" class="modal" tabindex="-1" role="dialog"></div>
+<div id="placeEditModalEmployees" class="modal" tabindex="-1" role="dialog"></div>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/dist/jquery.validate.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
+    <script src="~/lib/bootbox/bootbox.min.js"></script>
+
+    <script type="text/javascript">
+
+    var success =  @Html.Raw(Json.Serialize(StatusEnum.Success));
+    var failed = @Html.Raw(Json.Serialize(StatusEnum.Failed));
+    var noData = @Html.Raw(Json.Serialize(StatusEnum.NoContent));
+
+    function getCreateModal() {
+        $.ajax({
+            url: '@Url.Action("Create", "Employee")',
+            type: 'get',
+            success: function (result) {
+                $('#placeCreateModalEmployees').html(result);
+                $('#placeCreateModalEmployees').modal('show');
+                $("#create_form").validate({
+                    rules: {
+                        FirstName: "required",
+                        LastName: "required",
+                        Email: {
+                            required: true,
+                            email: true
+                        },
+                        DateOfBirth: {
+                            required: true
+                        },
+                        City: "required",
+                        State: "required",
+                    },
+                    messages: {
+                        FirstName: "Please specify your name",
+                        LastName: "Please specify your last name",
+                        Email: {
+                            required: "Please enter an email address...",
+                            email: "Your email address must be in the format of name@domain.com"
+                        },
+                        DateOfBirth: "Please input Date of birth...",
+                        City: "Please input your city",
+                        State: "Please input your state",
+                    },
+                    errorClass: "text-danger",
+                    submitHandler: function (form) {
+                        var data = new FormData(form);
+                        bootbox.dialog({
+                            message: '<p class="text-center mb-0"><i class="fa fa-spin fa-spinner"></i></p>',
+                            closeButton: false,
+                            animate: false
+                        });
+                $('#placeCreateModalEmployees').modal('hide'); //sakrije modal posle kreiranja
+
+                        $.ajax({
+                            url: '/Employee/Create',// URL akcije na controller
+                            type: 'post', //metoda
+                            processData: false,
+                            contentType: false,
+                            data: data,
+                            success: function (result) { //udje ako je dobio bilo kakvu povratnu inf
+                                bootbox.hideAll();
+                                bootbox.alert({
+                                    message: result.message,
+                                    callback: function () {
+                                        location.href = '/Employee/Index'; // promeni URL, gadja drugu stranicu
+                                    }
+                                })
+                            },
+
+                            error: function (err) { // on ce da udje samo ako nije dobio nikakvu povratnu inf
+                                bootbox.hideAll();
+                                bootbox.alert({
+                                    message: "error ghghgh",
+                                    callback: function () {
+                                        location.href = '/Employee/Index';
+                                    }
+                                })
+                            }
+                        });
+
+                    }
+
+                });
+            }
+        });
+        }
+
+    function getEdit(id) {
+        $.ajax({
+            url: '/Employee/Edit?id=' + id,
+            type: 'get',
+            success: function (result) {
+                $('#placeEditModalEmployees').html(result);
+                $('#placeEditModalEmployees').modal('show');
+                $("#edit_employees_form").validate({
+                    rules: {
+                        FirstName: "required",
+                        LastName: "required",
+                        Email: {
+                            required: true,
+                            email: true
+                        },
+                        DateOfBirth: "required",
+                        GenderId: "required",
+                        City: "required",
+                        State: "required",
+                    },
+                    messages: {
+                        FirstName: "Please specify  name...",
+                        LastName: "Please specify last name..",
+                        Email: {
+                            required: "Please enter an email address...",
+                            email: "Your email address must be in the format of name@domain.com"
+                        },
+                        DateOfBirth: "Please enter your date of birth...",
+                        GenderId: "Please select your gender...",
+                        City: "Please enter your city...",
+                        State: "Please enter your state...",
+
+                    },
+                    errorClass: "text-danger",
+                    submitHandler: function (form) {
+                        var data = new FormData(form);
+                        bootbox.dialog({
+                            message: '<p class="text-center mb-0"><i class="fa fa-spin fa-spinner"></i></p>',
+                            closeButton: false,
+                            animate: false
+                        });
+                $('#placeEditModalEmployees').modal('hide'); //sakrije modal posle kreiranja
+
+                        $.ajax({
+                            url: '/Employee/Edit?=' + id,// URL akcije na controller
+                            type: 'post', //metoda
+                            processData: false,
+                            contentType: false,
+                            data: data,
+                            success: function (result) { //udje ako je dobio bilo kakvu povratnu inf
+                                bootbox.hideAll();
+                                bootbox.alert({
+                                    message: result.message,
+                                    callback: function () {
+                                        location.href = '/Employee/Index'; // promeni URL, gadja drugu stranicu
+                                    }
+                                })
+                            },
+                            error: function (err) { // on ce da udje samo ako nije dobio nikakvu povratnu inf
+                                bootbox.hideAll();
+                                bootbox.alert({
+                                    message: "error",
+                                    callback: function () {
+                                        location.href = '/Employee/Index';
+                                    }
+                                })
+                            }
+                        });
+
+                    }
+
+                });
+            }
+        });
+
+    }
+
+        function deleteEmployee(id) {
+            bootbox.confirm({
+                buttons: {
+                    confirm: {
+                        label: "OK",
+                        className: 'btn btn-primary'
+                    },
+                    cancel: {
+                        label: "Cancel",
+                        className: 'btn btn-default'
+                    }
+                },
+                message: "Are you sure want to delete Employee?",
+                title: "Delete Employee",
+                closeButton: false,
+                callback: function (response) {
+                    if (response) {
+                        $.ajax({
+                            url: '/Employee/Delete',// URL akcije na controller
+                            type: 'post', //metoda
+                            data: {
+                                id: id
+                            },
+                            success: function (result) { //udje ako je dobio bilo kakvu povratnu inf
+                                bootbox.hideAll();
+                                bootbox.alert({
+                                    message: result.message,
+                                    callback: function () {
+                                        location.href = '/Employee/Index'; // promeni URL, gadja drugu stranicu
+                                    }
+                                })
+                            },
+
+                            error: function (err) { // on ce da udje samo ako nije dobio nikakvu povratnu inf
+                                bootbox.hideAll();
+                                bootbox.alert({
+                                    message: "error",
+                                    callback: function () {
+                                        location.href = '/Employee/Index';
+                                    }
+                                })
+                            }
+                        });
+                    }
+                }
+            })
+        }
+
+
+    </script>
+}

@@ -1,0 +1,157 @@
+﻿@model IEnumerable<ProjectLeader.Models.AssignmentHelperModels.ProjectAssignments>
+@using ProjectLeader.Service
+@using Microsoft.AspNetCore.Identity;
+
+@{
+    ViewBag.Title = "ProjectAssignments";
+}
+
+<div class="top-buffer"></div>
+<div class="panel panel-primary">
+    <div class="panel-heading panel-head">Project Assignments</div>
+    <div class="panel-body">
+        <div class="top-buffer"></div>
+        <table class="table table-bordered table-striped table-condensed">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Project</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.FirstName)</td>
+                        <td>@Html.DisplayFor(modelItem => item.LastName)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Project)</td>
+                        <td>
+                            <div class="form-group">
+                                <div class="col-md-offset-2 col-md-5">
+                                    <a class="btn btn-success" onclick="addToProject('@item.Id')">Add To Project</a>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-offset-2 col-md-5">
+                                    <a class="btn btn-danger" onclick="deleteFromProject('@item.Id')">Remove From Project</a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="placeAddToProjectModal" class="modal" tabindex="-1" role="dialog"></div>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/dist/jquery.validate.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
+    <script src="~/lib/bootbox/bootbox.min.js"></script>
+
+    <script type="text/javascript">
+
+        var success =  @Html.Raw(Json.Serialize(StatusEnum.Success));
+        var failed = @Html.Raw(Json.Serialize(StatusEnum.Failed));
+        var noData = @Html.Raw(Json.Serialize(StatusEnum.NoContent));
+
+         function refreshIndexPage() {
+            window.location.replace('@Url.Action("ProjectAssignments", "Project")');
+         };
+
+
+        function addToProject(id) {
+        bootbox.confirm({
+            message: "Are you sure you want to add to project?",
+            buttons: {
+                confirm: {
+                    label: 'Yes',
+                    className: 'btn-success'
+                },
+                cancel: {
+                    label: 'No',
+                    className: 'btn-danger'
+                }
+            },
+            callback: function (result) {
+                console.log(result);
+                if (result) {
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("AddEmployeeToProject", "Project")',
+                        data: {
+                            Id: id
+                        }
+                    }).done(function (result) {
+                        bootbox.alert({
+                            message: result.message,
+                            callback: function () {
+                                refreshIndexPage();
+                            }
+                        });
+                    }).fail(function () {
+                        bootbox.alert({
+                            message: 'Error',
+                            callback: function () {
+                                refreshIndexPage();
+                            }
+                        });
+                    });
+                }
+            }
+        });
+        };
+
+        function deleteFromProject(id) {
+        bootbox.confirm({
+            message: "Are you sure you want to delete from project?",
+            buttons: {
+                confirm: {
+                    label: 'Yes',
+                    className: 'btn-success'
+                },
+                cancel: {
+                    label: 'No',
+                    className: 'btn-danger'
+                }
+            },
+            callback: function (result) {
+                console.log(result);
+                if (result) {
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("DeleteFromProject", "Project")',
+                        data: {
+                            Id: id
+                        }
+                    }).done(function (result) {
+                        bootbox.alert({
+                            message: result.message,
+                            callback: function () {
+                                refreshIndexPage();
+                            }
+                        });
+                    }).fail(function () {
+                        bootbox.alert({
+                            message: 'Error',
+                            callback: function () {
+                                refreshIndexPage();
+                            }
+                        });
+                    });
+                }
+            }
+        });
+        };
+
+
+    </script>
+
+}
+
+

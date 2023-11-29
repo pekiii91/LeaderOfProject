@@ -1,0 +1,150 @@
+﻿@model IEnumerable<ProjectLeader.Models.CurrentHelperModels.AssignmentRequestsIndex>
+@using ProjectLeader.Service;
+@using Microsoft.AspNetCore.Identity;
+
+@{
+    ViewBag.Title = "AssignmentRequestsIndex";
+}
+
+<div class="top-buffer"></div>
+<div class="panel panel-primary">
+   
+    <div class="panel-heading panel-head">Assignments Requestes</div>
+    <div class="panel-body">
+        @*<ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" href="#">Active</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">InActive</a>
+            </li>
+        </ul>*@
+        @if(User.IsInRole("ProjectLead"))
+        {
+        <button class="btn btn-primary" onclick="getCreateModal()">Create New Requested</button>
+        }
+        <div class="top-buffer"></div>
+        <table class="table table-bordered table-striped table-condensed">
+            <thead>
+                <tr>
+                    @*<th>Addressed To</th>*@
+                    <th>Requested For</th>
+                    <th>From Project</th>
+                    <th>To Project</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        @*<td>@Html.DisplayFor(modelItem => item.AddressedTo)</td>*@
+                        <td>@Html.DisplayFor(modelItem => item.RequestedFor)</td>
+                        <td>@Html.DisplayFor(modelItem => item.FromProject)</td>
+                        <td>@Html.DisplayFor(modelItem => item.ToProject)</td>
+                        <td>@Html.DisplayFor(modelItem => item.StartDate)</td>
+                        <td>@Html.DisplayFor(modelItem => item.EndDate)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Status)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+    <div id="placeCreateModalRequests" class="modal" tabindex="-1" role="dialog"></div>
+
+
+@section Scripts {
+
+   <script src="~/lib/jquery-validation/dist/jquery.validate.js"></script>
+   <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
+   <script src="~/lib/bootbox/bootbox.min.js"></script>
+
+   <script type="text/javascript">
+
+    var success =  @Html.Raw(Json.Serialize(StatusEnum.Success));
+    var failed = @Html.Raw(Json.Serialize(StatusEnum.Failed));
+    var noData = @Html.Raw(Json.Serialize(StatusEnum.NoContent));
+
+
+    function getCreateModal() {
+        $.ajax({
+            url: '@Url.Action("Create", "AssignmentRequests")',
+            type: 'get',
+            success: function (result) {
+                $('#placeCreateModalRequests').html(result);
+                $('#placeCreateModalRequests').modal('show');
+                $("#create_requests_form").validate({
+                    rules: {
+                        //AddreessedTo: "required", //RequestedFrom
+                        RequestsFor: "required",
+
+                        ToProject: "required",
+                        StartDate: {
+                            required: true
+                        },
+                        EndDate: {
+                            required: true
+                        },
+                    },
+                    messages: {
+                        //AddreessedTo: "Please select in your addressed to...",
+                        RequestsFor: "Please select in your requests for...",
+                        ToProject: "Please select in your to project..",
+                        StartDate: "Please input your start date...",
+                        EndDate: "Please input your end date",
+                    },
+                    errorClass: "text-danger",
+                    submitHandler: function (form) {
+                        var data = new FormData(form);
+                        bootbox.dialog({
+                            message: '<p class="text-center mb-0"><i class="fa fa-spin fa-spinner"></i></p>',
+                            closeButton: false,
+                            animate: false
+                        });
+                        $('#placeCreateModalRequests').modal('hide'); //sakrije modal posle kreiranja
+
+                        $.ajax({
+                            url: '/AssignmentRequests/Create',  // URL akcije na controller
+                            type: 'post', //metoda
+                            processData: false,
+                            contentType: false,
+                            data: data,
+                            success: function (result) { //udje ako je dobio bilo kakvu povratnu inf
+                                bootbox.hideAll();
+                                bootbox.alert({
+                                    message: result.message,
+                                    callback: function () {
+                                        location.href = '/AssignmentRequests/AssignmentRequestsIndex'; // promeni URL, gadja drugu stranicu
+                                    }
+                                })
+                            },
+                            error: function (err) { // on ce da udje samo ako nije dobio nikakvu povratnu inf
+                                bootbox.hideAll();
+                                bootbox.alert({
+                                    message: "error",
+                                    callback: function () {
+                                        location.href = '/AssignmentRequests/AssignmentRequestsIndex';
+                                    }
+                                })
+                            }
+                        });
+
+                    }
+
+                });
+            }
+        });
+    }
+
+
+   </script>
+}
+
+
+
+
+

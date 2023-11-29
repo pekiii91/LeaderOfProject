@@ -1,0 +1,74 @@
+﻿@model ProjectLeader.Models.CurrentHelperModels.AssignmentHelperModel
+
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+
+        <div class="modal-header">
+            <h2 class="modal-title">Create new requests</h2>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+
+        <div class="modal-body">
+
+            <form id="create_requests_form">
+
+                <input type="text" asp-for="ProjectFrom" aria-hidden ="true"/>
+
+                <div class="form-group">
+                    <label class="col-md-5 control-label">Requested From*</label>
+                    <div class="col-md-12">
+                        <select class="form-control text-secondary" asp-for="EmployeeAddressed" asp-items="@(new SelectList(Model.EmployeesList, "Value", "Text"))"></select>
+                        <span asp-validation-for="EmployeeAddressed" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-md-5 control-label">Requested For*</label>
+                    <div class="col-md-12">
+                        <select class="form-control text-secondary" asp-for="EmployeeRequested" asp-items="@(new SelectList(Model.EmployeesList, "Value", "Text"))"></select>
+                        <span asp-validation-for="EmployeeRequested" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-md-5 control-label">To Project*</label>
+                    <div class="col-md-12">
+                        <select class="form-control text-secondary" asp-for="ProjectTo" asp-items="@(new SelectList(Model.ProjectsList, "Value", "Text"))"></select>
+                        <span asp-validation-for="ProjectTo" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="StartDate" class="col-md-5 control-label">Start Date*</label>
+                    <div class="col-md-12">
+                        <input asp-for="StartDate" class="form-control">
+                        <span asp-validation-for="StartDate" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="EndDate" class="col-md-5 control-label">End Date*</label>
+                    <div class="col-md-12">
+                        <input asp-for="EndDate" class="form-control" />
+                        <span asp-validation-for="EndDate" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-md-5 control-label">Status*</label>
+                    <div class="col-md-12">
+                        <select class="form-control text-secondary" asp-for="StatusId" asp-items="@(new SelectList(Model.StatusList, "Value", "Text"))"></select>
+                        <span asp-validation-for="StatusId" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" id="submit" class="btn btn-primary">Add requests</button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+

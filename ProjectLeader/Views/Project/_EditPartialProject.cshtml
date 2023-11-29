@@ -1,0 +1,73 @@
+﻿@model ProjectLeader.Models.HelperModels.ProjectHelperModel
+
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+
+        <div class="modal-header">
+            <h2 class="modal-title">Edit project</h2>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+
+        <div class="modal-body">
+
+            <form id="edit_project_form">
+
+                <div class="form-group">
+                    <label asp-for="Name" class="col-md-5 control-label">Name*</label>
+                    <div class="col-md-12">
+                        <input asp-for="Name" class="form-control">
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="StartDate" class="col-md-5 control-label">Start Date*</label>
+                    <div class="col-md-12">
+                        <input asp-for="StartDate" class="form-control">
+                        <span asp-validation-for="StartDate" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="EndDate" class="col-md-5 control-label">End Date*</label>
+                    <div class="col-md-12">
+                        <input asp-for="EndDate" class="form-control" />
+                        <span asp-validation-for="EndDate" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Path" class="col-md-5 control-label">Path*</label>
+                    <div class="col-md-12">
+                        <input asp-for="Path" class="form-control" />
+                        <span asp-validation-for="Path" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-md-5 control-label">Project Lead*</label>
+                    <div class="col-md-12">
+                        <select class="form-control text-secondary" asp-for="ProjectLeadId" asp-items="@(new SelectList(Model.EmployeesList, "Value", "Text"))"></select>
+                        <span asp-validation-for="ProjectLeadId" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-md-5 control-label">Status*</label>
+                    <div class="col-md-12">
+                        <select class="form-control text-secondary" asp-for="StatusId" asp-items="@(new SelectList(Model.StatusList, "Value", "Text"))"></select>
+                        <span asp-validation-for="StatusId" class="text-danger"></span>
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    <button type="submit" id="submit" class="btn btn-primary">Submit</button>
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+</div>

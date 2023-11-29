@@ -1,0 +1,292 @@
+﻿@model IEnumerable<ProjectLeader.Models.HelperModels.ProjectManagement>
+@using ProjectLeader.Service
+@using Microsoft.AspNetCore.Identity;
+
+@{
+    ViewBag.Title = "ProjectManagement";
+}
+
+<h2>Here is the list of Project</h2>
+
+<div class="top-buffer"></div>
+<div class="panel panel-primary">
+    <div class="panel-heading panel-head">Project Management</div>
+    <div class="panel-body">
+        @if(User.IsInRole("DepartmentLead"))
+        {
+        <button class="btn btn-primary" onclick="getCreateModal()">Create New</button>
+        }
+        <div class="top-buffer"></div>
+        <table class="table table-bordered table-striped table-condensed">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Start Date</th>
+                    <th>End Data</th>
+                    <th>Path</th>
+                    <th>ProjectLead</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Name)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.StartDate)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.EndDate)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Path)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.ProjectLead)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Status)
+                        </td>
+                        @if(User.IsInRole("DepartmentLead"))
+                        {
+                        <td>
+                            <div class="form-group">
+                                <div class="col-md-offset-2 col-md-5">
+                                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#placeEditModalProject" onclick="getEdit('@item.Id')">Edit</button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-offset-2 col-md-5">
+                                    <button type="button" class="btn btn-primary" onclick="deleteProject('@item.Id')">Delete</button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-offset-2 col-md-5">
+                                    @Html.ActionLink("Create Assignmennt", "AssignmentRequestsIndex", "AssignmentRequests", new { from_proj = item.Id }, htmlAttributes: null);
+                                </div>
+                            </div>
+                        </td>
+                        }
+                        else
+                        {
+                            <td></td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="placeCreateModalProject" class="modal" tabindex="-1" role="dialog"></div>
+<div id="placeEditModalProject" class="modal" tabindex="-1" role="dialog"></div>
+
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/dist/jquery.validate.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
+    <script src="~/lib/bootbox/bootbox.min.js"></script>
+
+    <script type="text/javascript">
+
+    var success =  @Html.Raw(Json.Serialize(StatusEnum.Success));
+    var failed = @Html.Raw(Json.Serialize(StatusEnum.Failed));
+    var noData = @Html.Raw(Json.Serialize(StatusEnum.NoContent));
+
+        function getCreateModal() {
+        $.ajax({
+            url: '@Url.Action("Create", "Project")',
+            type: 'get',
+            success: function (result) {
+                $('#placeCreateModalProject').html(result);
+                $('#placeCreateModalProject').modal('show');
+                $("#project_form").validate({
+                    rules: {
+                        Name: "required",
+                        StartDate: {
+                            required: true
+                        },
+                        EndDate: {
+                            required: true
+                        },
+                        Path: "required",
+                    },
+                    messages: {
+                        Name: "Please specify your name",
+                        StartDate: "Please input start date...",
+                        EndDate: "Please input end date..",
+                        Path: "Please input your city",
+                    },
+                    errorClass: "text-danger",
+                    submitHandler: function (form) {
+                        var data = new FormData(form);
+                        bootbox.dialog({
+                            message: '<p class="text-center mb-0"><i class="fa fa-spin fa-spinner"></i></p>',
+                            closeButton: false,
+                            animate: false
+                        });
+                        $('#placeCreateModalProject').modal('hide'); //sakrije modal posle kreiranja
+
+                        $.ajax({
+                            url: '/Project/Create', // URL akcije na controller
+                            type: 'post', //metoda
+                            processData: false,
+                            contentType: false,
+                            data: data,
+                            success: function (result) { //udje ako je dobio bilo kakvu povratnu inf
+                                bootbox.hideAll();
+                                bootbox.alert({
+                                    message: result.message,
+                                    callback: function () {
+                                        location.href = '/Project/ProjectManagement'; // promeni URL, gadja drugu stranicu
+                                    }
+                                })
+                            },
+
+                            error: function (err) { // on ce da udje samo ako nije dobio nikakvu povratnu inf
+                                bootbox.hideAll();
+                                bootbox.alert({
+                                    message: "error",
+                                    callback: function () {
+                                        location.href = '/Project/ProjectManagement';
+                                    }
+                                })
+                            }
+                        });
+
+                    }
+
+                });
+            }
+        });
+        }
+
+        function getEdit(id) {
+            $.ajax({
+                url: '/Project/Edit?id=' + id,
+                type: 'get',
+                success: function (result) {
+                    console.log('success');
+                    console.log(result);
+                    $('#placeEditModalProject').html(result);
+                    $('#placeEditModalProject').modal('show');
+                    $("#edit_project_form").validate({
+                        rules: {
+                            Name: "required",
+                            StartDate: {
+                                required: true
+                            },
+                            EndDate: {
+                                required: true
+                            },
+                            Path: "required",
+                        },
+                        messages: {
+                            Name: "Please specify your name",
+                            StartDate: "Please input start date...",
+                            EndDate: "Please input end date..",
+                            Path: "Please input your city",
+                        },
+                        errorClass: "text-danger",
+
+                        submitHandler: function (form) {
+                            var data = new FormData(form);
+                            bootbox.dialog({
+                                message: '<p class="text-center mb-0"><i class="fa fa-spin fa-spinner"></i></p>',
+                                closeButton: false,
+                                animate: false
+                            });
+
+                            $('#placeEditModalProject').modal('hide'); //sakrije modal posle kreiranja
+
+                            $.ajax({
+                                url: '/Project/Edit',  // URL akcije na controller
+                                type: 'post', //metoda
+                                processData: false,
+                                contentType: false,
+                                data: data,
+                                success: function (result) { //udje ako je dobio bilo kakvu povratnu inf
+                                    bootbox.hideAll();
+                                    bootbox.alert({
+                                        message: result.message,
+                                        callback: function () {
+                                            location.href = '/Project/ProjectManagement'; // promeni URL, gadja drugu stranicu
+                                        }
+                                    })
+                                },
+                                error: function (err) { // on ce da udje samo ako nije dobio nikakvu povratnu inf
+                                    bootbox.hideAll();
+                                    bootbox.alert({
+                                        message: "error",
+                                        callback: function () {
+                                            location.href = '/Project/ProjectManagement';
+                                        }
+                                    })
+                                }
+                            });
+
+                        }
+                     
+
+                    });
+                }
+            });
+
+        }
+
+        function deleteProject(id) {
+            bootbox.confirm({
+                buttons: {
+                    confirm: {
+                        label: "OK",
+                        className: 'btn btn-primary'
+                    },
+                    cancel: {
+                        label: "Cancel",
+                        className: 'btn btn-default'
+                    }
+                },
+                message: "Are you sure want to delete project?",
+                title: "Delete Project",
+                closeButton: false,
+                callback: function (response) {
+                    if (response) {
+                        $.ajax({
+                            url: '/Project/Delete',// URL akcije na controller
+                            type: 'post', //metoda
+                            data: {
+                                id: id
+                            },
+                            success: function (result) { //udje ako je dobio bilo kakvu povratnu inf
+                                bootbox.hideAll();
+                                bootbox.alert({
+                                    message: result.message,
+                                    callback: function () {
+                                        location.href = '/Project/ProjectManagement'; // promeni URL, gadja drugu stranicu
+                                    }
+                                })
+                            },
+
+                            error: function (err) { // on ce da udje samo ako nije dobio nikakvu povratnu inf
+                                bootbox.hideAll();
+                                bootbox.alert({
+                                    message: "error",
+                                    callback: function () {
+                                        location.href = '/Project/ProjectManagement';
+                                    }
+                                })
+                            }
+                        });
+                    }
+                }
+            })
+        }
+
+
+    </script>
+}
+

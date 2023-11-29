@@ -1,0 +1,165 @@
+﻿@model IEnumerable<ProjectLeader.Models.CurrentHelperModels.RequestedFromMeIndex>
+@using ProjectLeader.Service;
+@using Microsoft.AspNetCore.Identity;
+
+@{
+    ViewBag.Title = "RequestedFromMeIndex";
+}
+
+<div class="top-buffer"></div>
+<div class="panel panel-primary">
+    <div class="panel-body">
+        @*<ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" href="#">Active</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">InActive</a>
+            </li>
+        </ul>*@
+        <div class="top-buffer"></div>
+            <table class="table table-bordered table-striped table-condensed">
+                <thead>
+                    <tr>
+                        <th>Requested From</th>
+                        <th>Requested For</th>
+                        <th>From Project</th>
+                        <th>To Project</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@Html.DisplayFor(modelItem => item.RequestedFrom)</td>
+                            <td>@Html.DisplayFor(modelItem => item.RequestedFor)</td>
+                            <td>@Html.DisplayFor(modelItem => item.FromProject)</td>
+                            <td>@Html.DisplayFor(modelItem => item.ToProject)</td>
+                            <td>@Html.DisplayFor(modelItem => item.StartDate)</td>
+                            <td>@Html.DisplayFor(modelItem => item.EndDate)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Status)</td>
+                            @if (User.IsInRole("DepartmentLead"))
+                            {
+                                <td>
+                                    <a class="btn btn-success" onclick="approveRequest('@item.Id')">Approve</a>
+                                    <a class="btn btn-danger" onclick="declineRequest('@item.Id')">Decline</a>
+                                </td>
+                            }
+                            else
+                            {
+                                <td></td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
+<script src="~/lib/bootbox/bootbox.min.js"></script>
+
+<script type="text/javascript">
+
+    var success = @Html.Raw(Json.Serialize(StatusEnum.Success));
+    var failed = @Html.Raw(Json.Serialize(StatusEnum.Failed));
+    var noData = @Html.Raw(Json.Serialize(StatusEnum.NoContent));
+
+    function refreshIndexPage() {
+            window.location.replace('@Url.Action("RequestedFromMeIndex", "AssignmentRequests")');
+    };
+
+
+    function approveRequest(id) {
+        bootbox.confirm({
+            message: "Are you sure you want to approve this request?",
+            buttons: {
+                confirm: {
+                    label: 'Yes',
+                    className: 'btn-success'
+                },
+                cancel: {
+                    label: 'No',
+                    className: 'btn-danger'
+                }
+            },
+            callback: function (result) {
+                console.log(result);
+                if (result) {
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("ApproveRequest", "AssignmentRequests")',
+                        data: {
+                            Id: id
+                        }
+                    }).done(function (result) {
+                        bootbox.alert({
+                            message: result.message,
+                            callback: function () {
+                                refreshIndexPage();
+                            }
+                        });
+                    }).fail(function () {
+                        bootbox.alert({
+                            message: 'Error',
+                            callback: function () {
+                                refreshIndexPage();
+                            }
+                        });
+                    });
+                }
+            }
+        });
+    };
+
+    function declineRequest(id) {
+        bootbox.confirm({
+            message: "Are you sure you want to decline this request?",
+            buttons: {
+                confirm: {
+                    label: 'Yes',
+                    className: 'btn-success'
+                },
+                cancel: {
+                    label: 'No',
+                    className: 'btn-danger'
+                }
+            },
+            callback: function (result) {
+                console.log(result);
+                if (result) {
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("DeclineRequest", "AssignmentRequests")',
+                        data: {
+                            Id: id
+                        }
+                    }).done(function (result) {
+                        bootbox.alert({
+                            message: result.message,
+                            callback: function () {
+                                refreshIndexPage();
+                            }
+                        });
+                    }).fail(function () {
+                        bootbox.alert({
+                            message: result.message,
+                            callback: function () {
+                                refreshIndexPage();
+                            }
+                        });
+                    });
+                }
+            }
+        });
+     };
+
+   
+
+</script>
